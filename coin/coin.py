@@ -16,6 +16,10 @@
 import requests
 import os
 import logging
+import json
+import random
+import hmac
+import hashlib
 
 from coin.exceptions import FilePermissionError
 
@@ -23,6 +27,7 @@ class Coin(object):
     """
     TODO: Docstring
     """
+    AUTH_URL = 'https://coins.ph/user/api/authorize'
     SELLORDER_API_URL = 'https://coins.ph/api/v2/sellorder'
 
     def __init__(self, *args, **kwargs):
@@ -42,6 +47,29 @@ class Coin(object):
             config = map(lambda x: x.rstrip(), file_handler.readlines())
         config = dict(map(lambda x: tuple(x.split(':')), config))
         return config
+
+    def _generate_nonce(self, length=16):
+        return ''.join([str(random.randint(0, 9)) for i in range(length)])
+
+    def _generate_headers(self, body, url):
+        config = self._read_config()
+        nonce = self._generate_nonce()
+        if body:
+            body = json.dumps(body, separators=(',', ':'))
+            message = nonce + url + body
+        else:
+            message = nonce + url
+
+        signature = hmac.new(config['secret'], message, hashlib.sha256).hexdigest()
+
+        headers = {
+            'ACCESS_SIGNATURE': str(signature),
+            'ACCESS_KEY': config['api'],
+            'ACCESS_NONCE': int(nonce),
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        }
+        return headers
 
     def config(self):
         """
@@ -63,7 +91,7 @@ class Coin(object):
 
         os.chmod(self.config_file, 0o600)
 
-    def buy_load(self, phone_number):
+    def buy_load(self, phone_number, amount, network):
         """
         TODO: Docstring
         """
