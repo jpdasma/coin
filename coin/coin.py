@@ -29,6 +29,7 @@ class Coin(object):
     """
     AUTH_URL = 'https://coins.ph/user/api/authorize'
     SELLORDER_API_URL = 'https://coins.ph/api/v2/sellorder'
+    MARKET_RATE_URL = 'https://quote.coins.ph/v1/markets/BTC-PHP'
 
     def __init__(self, *args, **kwargs):
         self.config_file_location = os.environ['HOME'] + '/.coin'
@@ -70,6 +71,11 @@ class Coin(object):
             'Accept': 'application/json'
         }
         return headers
+
+    def _php_to_btc(self, php=1):
+        value = json.loads(requests.get(self.MARKET_RATE_URL).text)
+        btc = int(value['market']['bid'])
+        return format(php * (1 / btc), '.7f')
 
     def config(self):
         """

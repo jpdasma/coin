@@ -19,10 +19,21 @@ import shutil
 import tempfile
 import random
 import hmac
+import requests
 
 from unittest.mock import MagicMock, patch
 from coin.coin import Coin
 from coin.exceptions import FilePermissionError
+
+def mocked_requests_get(*args, **kwargs):
+    class MockResponse(object):
+        def __init__(self, text, status_code):
+            self.text = text
+            self.status_code = status_code
+        def text(self):
+            return self.text
+    return MockResponse('{"market": { "ask": "359173", "bid": "345087", "currency": "PHP", "expires_in_seconds": 20, "product": "BTC", "symbol": "BTC-PHP" }}', 200)
+
 
 class TestCoin(unittest.TestCase):
 
@@ -72,6 +83,11 @@ class TestCoin(unittest.TestCase):
         url = "http://test.com/api/v1/"
         header = self.coin._generate_headers(body, url)
         self.assertEquals({ 'ACCESS_SIGNATURE': 'test', 'ACCESS_KEY': 'apikey111', 'ACCESS_NONCE': 1234567890123456, 'Content-Type': 'application/json', 'Accept': 'application/json'}, header)
+
+    @patch('requests.get', side_effect=mocked_requests_get)
+    def test___php_to_btc(self, mock_get):
+        value = self.coin._php_to_btc(25)
+        self.assertEquals('0.0000724', value)
 
 
 if __name__ == '__main__':
