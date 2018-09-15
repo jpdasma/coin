@@ -66,7 +66,7 @@ class Coin(object):
         headers = {
             'ACCESS_SIGNATURE': str(signature),
             'ACCESS_KEY': config[b'api'].decode('utf-8'),
-            'ACCESS_NONCE': int(nonce),
+            'ACCESS_NONCE': nonce,
             'Content-Type': 'application/json',
             'Accept': 'application/json'
         }
@@ -96,9 +96,18 @@ class Coin(object):
             file_handler.write(config)
 
         os.chmod(self.config_file, 0o600)
-
+ 
     def buy_load(self, phone_number, amount, network):
         """
         TODO: Docstring
         """
-        pass
+        body = {
+            "payment_outlet": "load-" + network,
+            "btc_amount": float(self._php_to_btc(amount)),
+            "currency": "PHP",
+            "currency_amount_locked": amount,
+            "pay_with_wallet": "BTC",
+            "phone_number_load": phone_number
+        }
+        headers = self._generate_headers(body, self.SELLORDER_API_URL)
+        requests.post(self.SELLORDER_API_URL, headers=headers, data=body)

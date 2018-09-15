@@ -82,12 +82,25 @@ class TestCoin(unittest.TestCase):
         body = ""
         url = "http://test.com/api/v1/"
         header = self.coin._generate_headers(body, url)
-        self.assertEquals({ 'ACCESS_SIGNATURE': 'test', 'ACCESS_KEY': 'apikey111', 'ACCESS_NONCE': 1234567890123456, 'Content-Type': 'application/json', 'Accept': 'application/json'}, header)
+        self.assertEquals({ 'ACCESS_SIGNATURE': 'test', 'ACCESS_KEY': 'apikey111', 'ACCESS_NONCE': '1234567890123456', 'Content-Type': 'application/json', 'Accept': 'application/json'}, header)
 
     @patch('requests.get', side_effect=mocked_requests_get)
     def test___php_to_btc(self, mock_get):
         value = self.coin._php_to_btc(25)
         self.assertEquals('0.0000724', value)
+
+    @patch('builtins.input')
+    @patch('hmac.HMAC.hexdigest')
+    @patch('random.randint')
+    @patch('requests.get', side_effect=mocked_requests_get)
+    @patch('requests.post')
+    def test__buy_load(self, mock_post, mock_get, mock_randint, mock_hexdigest,  mock_input):
+        mock_input.side_effect = [ 'apikey111', 'secretkey222' ]
+        mock_hexdigest.return_value = 'test'
+        mock_randint.side_effect = [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4, 5, 6 ]
+        self.coin.config()
+        self.coin.buy_load('111', 25, "globe")
+        mock_post.assert_called_with('https://coins.ph/api/v2/sellorder', data={'payment_outlet': 'load-globe', 'btc_amount': 7.24e-05, 'currency': 'PHP', 'currency_amount_locked': 25, 'pay_with_wallet': 'BTC', 'phone_number_load': '111'}, headers={'ACCESS_SIGNATURE': 'test', 'ACCESS_KEY': 'apikey111', 'ACCESS_NONCE': '1234567890123456', 'Content-Type': 'application/json', 'Accept': 'application/json'})
 
 
 if __name__ == '__main__':
