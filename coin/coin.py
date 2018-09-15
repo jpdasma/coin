@@ -41,11 +41,11 @@ class Coin(object):
         file_mode = os.stat(self.config_file)[0]
 
         if file_mode != 33152:
-            raise FilePermissionError("Config file must be mode 700 to ensure that only the user could read it")
+            raise FilePermissionError("Config file must be mode 600 to ensure that only the user could read it")
 
-        with open(self.config_file, "r") as file_handler:
+        with open(self.config_file, "rb") as file_handler:
             config = map(lambda x: x.rstrip(), file_handler.readlines())
-        config = dict(map(lambda x: tuple(x.split(':')), config))
+        config = dict(map(lambda x: tuple(x.split(b':')), config))
         return config
 
     def _generate_nonce(self, length=16):
@@ -60,11 +60,11 @@ class Coin(object):
         else:
             message = nonce + url
 
-        signature = hmac.new(config['secret'], message, hashlib.sha256).hexdigest()
+        signature = hmac.new(config[b'secret'], message.encode('utf-8'), hashlib.sha256).hexdigest()
 
         headers = {
             'ACCESS_SIGNATURE': str(signature),
-            'ACCESS_KEY': config['api'],
+            'ACCESS_KEY': config[b'api'].decode('utf-8'),
             'ACCESS_NONCE': int(nonce),
             'Content-Type': 'application/json',
             'Accept': 'application/json'

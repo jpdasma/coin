@@ -17,6 +17,8 @@ import unittest
 import os
 import shutil
 import tempfile
+import random
+import hmac
 
 from unittest.mock import MagicMock, patch
 from coin.coin import Coin
@@ -43,7 +45,7 @@ class TestCoin(unittest.TestCase):
     def test___read_config(self, mock_input):
         mock_input.side_effect = [ 'apikey111', 'secretkey222' ]
         self.coin.config()
-        self.assertEquals({'api':'apikey111', 'secret':'secretkey222'}, self.coin._read_config())
+        self.assertEquals({b'api':b'apikey111', b'secret':b'secretkey222'}, self.coin._read_config())
 
     @patch('builtins.input')
     def test___read_config_filepermissionerror(self, mock_input):
@@ -51,6 +53,25 @@ class TestCoin(unittest.TestCase):
         self.coin.config()
         os.chmod(os.environ['HOME'] + '/.coin/config', 0o777)
         self.assertRaises(FilePermissionError, self.coin._read_config)
+
+    @patch('random.randint')
+    def test___generate_nonce(self, mock_randint):
+        mock_randint.side_effect = [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4, 5, 6 ]
+        nonce = self.coin._generate_nonce()
+        self.assertEquals('1234567890123456', nonce)
+
+    @patch('builtins.input')
+    @patch('hmac.HMAC.hexdigest')
+    @patch('random.randint')
+    def test___generate_headers(self, mock_randint, mock_hexdigest,  mock_input):
+        mock_input.side_effect = [ 'apikey111', 'secretkey222' ]
+        mock_hexdigest.return_value = 'test'
+        mock_randint.side_effect = [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4, 5, 6 ]
+        self.coin.config()
+        body = ""
+        url = "http://test.com/api/v1/"
+        header = self.coin._generate_headers(body, url)
+        self.assertEquals({ 'ACCESS_SIGNATURE': 'test', 'ACCESS_KEY': 'apikey111', 'ACCESS_NONCE': 1234567890123456, 'Content-Type': 'application/json', 'Accept': 'application/json'}, header)
 
 
 if __name__ == '__main__':
