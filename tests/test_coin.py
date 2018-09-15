@@ -22,8 +22,7 @@ import hmac
 import requests
 
 from unittest.mock import MagicMock, patch
-from coin.coin import Coin
-from coin.exceptions import FilePermissionError
+from coin import Coin, FilePermissionError
 
 def mocked_requests_get(*args, **kwargs):
     class MockResponse(object):

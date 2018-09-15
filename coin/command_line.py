@@ -13,5 +13,36 @@
 # 
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
+import click
 from .coin import Coin
-from .exceptions import FilePermissionError
+
+
+@click.group()
+def main():
+    """coins.ph command line tool
+    """
+    pass
+
+@click.command()
+def config():
+    """Setup the API and Secret key in a config file.
+    """
+    coin = Coin()
+    coin.config()
+
+@click.command()
+@click.argument('phone_number')
+@click.argument('amount')
+@click.argument('network')
+def buy_load(phone_number, amount, network):
+    """Buy a load using your coins.ph account.
+    """
+    coin = Coin()
+    coin.buy_load(phone_number, amount, network)
+
+
+main.add_command(config)
+main.add_command(buy_load)
+
+if __name__ == '__main__':
+    main()

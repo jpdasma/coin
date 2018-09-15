@@ -21,7 +21,7 @@ import random
 import hmac
 import hashlib
 
-from coin.exceptions import FilePermissionError
+from .exceptions import FilePermissionError
 
 class Coin(object):
     """
