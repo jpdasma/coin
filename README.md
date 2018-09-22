@@ -1,5 +1,9 @@
 # coin
 
+coins.ph command line tool.
+
+You would need to get a developers api since this is currently using HMAC for authentication.
+
 ## Usage
 
 ```
@@ -34,3 +38,4 @@ coin-cmd buy_load [OPTIONS] PHONE_NUMBER AMOUNT NETWORK
 
 1. Add other features from coins.ph (Transfer money, convert money)
 2. Automatically detect the network based on the phone number
+3. Use OAUTH instead of HMAC

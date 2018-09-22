@@ -75,7 +75,7 @@ class Coin(object):
     def _php_to_btc(self, php=1):
         value = json.loads(requests.get(self.MARKET_RATE_URL).text)
         btc = int(value['market']['bid'])
-        return format(php * (1 / btc), '.7f')
+        return format(float(php)/btc, '.7f')
 
     def config(self):
         """
@@ -110,4 +110,5 @@ class Coin(object):
             "phone_number_load": phone_number
         }
         headers = self._generate_headers(body, self.SELLORDER_API_URL)
-        requests.post(self.SELLORDER_API_URL, headers=headers, data=body)
+        result = requests.post(self.SELLORDER_API_URL, headers=headers, data=body)
+        print(result.text)
