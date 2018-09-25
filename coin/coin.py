@@ -20,6 +20,8 @@ import json
 import random
 import hmac
 import hashlib
+import sys
+import time
 
 from .exceptions import FilePermissionError
 
@@ -50,7 +52,7 @@ class Coin(object):
         return config
 
     def _generate_nonce(self, length=16):
-        return ''.join([str(random.randint(0, 9)) for i in range(length)])
+        return str(int(time.time() * 1e6))
 
     def _generate_headers(self, body, url):
         config = self._read_config()
@@ -70,6 +72,7 @@ class Coin(object):
             'Content-Type': 'application/json',
             'Accept': 'application/json'
         }
+
         return headers
 
     def _php_to_btc(self, php=1):

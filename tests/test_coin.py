@@ -64,19 +64,19 @@ class TestCoin(unittest.TestCase):
         os.chmod(os.environ['HOME'] + '/.coin/config', 0o777)
         self.assertRaises(FilePermissionError, self.coin._read_config)
 
-    @patch('random.randint')
-    def test___generate_nonce(self, mock_randint):
-        mock_randint.side_effect = [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4, 5, 6 ]
+    @patch('time.time')
+    def test___generate_nonce(self, mock_time):
+        mock_time.return_value = 1234567890.123456
         nonce = self.coin._generate_nonce()
         self.assertEquals('1234567890123456', nonce)
 
     @patch('builtins.input')
     @patch('hmac.HMAC.hexdigest')
-    @patch('random.randint')
-    def test___generate_headers(self, mock_randint, mock_hexdigest,  mock_input):
+    @patch('time.time')
+    def test___generate_headers(self, mock_time, mock_hexdigest,  mock_input):
         mock_input.side_effect = [ 'apikey111', 'secretkey222' ]
         mock_hexdigest.return_value = 'test'
-        mock_randint.side_effect = [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4, 5, 6 ]
+        mock_time.return_value = 1234567890.123456
         self.coin.config()
         body = ""
         url = "http://test.com/api/v1/"
@@ -90,13 +90,13 @@ class TestCoin(unittest.TestCase):
 
     @patch('builtins.input')
     @patch('hmac.HMAC.hexdigest')
-    @patch('random.randint')
+    @patch('time.time')
     @patch('requests.get', side_effect=mocked_requests_get)
     @patch('requests.post')
-    def test__buy_load(self, mock_post, mock_get, mock_randint, mock_hexdigest,  mock_input):
+    def test__buy_load(self, mock_post, mock_get, mock_time, mock_hexdigest,  mock_input):
         mock_input.side_effect = [ 'apikey111', 'secretkey222' ]
         mock_hexdigest.return_value = 'test'
-        mock_randint.side_effect = [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4, 5, 6 ]
+        mock_time.return_value = 1234567890.123456
         self.coin.config()
         self.coin.buy_load('111', 25, "globe")
         mock_post.assert_called_with('https://coins.ph/api/v2/sellorder', data={'payment_outlet': 'load-globe', 'btc_amount': 7.24e-05, 'currency': 'PHP', 'currency_amount_locked': 25, 'pay_with_wallet': 'BTC', 'phone_number_load': '111'}, headers={'ACCESS_SIGNATURE': 'test', 'ACCESS_KEY': 'apikey111', 'ACCESS_NONCE': '1234567890123456', 'Content-Type': 'application/json', 'Accept': 'application/json'})
