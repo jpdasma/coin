@@ -1,5 +1,5 @@
 # coin
-
+# test
 coins.ph command line tool.
 
 You would need to get a developers api since this is currently using HMAC for authentication.
